@@ -16,5 +16,5 @@ public interface ReservaRepository extends CrudRepository<Reserva,Long> {
     Reserva findByCodigoReserva(Integer codigoReserva);
     List<Reserva> findByCliente(Cliente cliente);
 
-    Reserva findByFechaReserva(LocalDate fecha);
+    List<Reserva> findByFechaReserva(LocalDate fecha);
 }

@@ -11,6 +11,7 @@ import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.util.stream.Collectors;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,31 +23,25 @@ import java.util.UUID;
 @Service
 public class ServiceReserva {
 
-    @Autowired
     private ReservaRepository reservaRepository;
-
-    @Autowired
     private HabitacionRepository habitacionRepository;
-
-    @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    public ServiceReserva(HabitacionRepository habitacionRepository, ClienteRepository clienteRepository, ReservaRepository reservaRepository) {
+        this.reservaRepository = reservaRepository;
+        this.habitacionRepository = habitacionRepository;
+        this.clienteRepository = clienteRepository;
+    }
+
     public ReservaInfo crearReserva(Integer numHabitacion, LocalDate fecha, Integer DinCliente) {
-        Reserva reserva = new Reserva();
-        ReservaInfo reservaInfo = new ReservaInfo();
-        reserva.setFechaReserva(fecha);
-        reserva.setHabitacion(this.habitacionRepository.findByNumero(numHabitacion));
-        reserva.setCliente(this.clienteRepository.findByCedula(DinCliente));
-        reserva.setTotalPagar(this.habitacionRepository.findByNumero(numHabitacion).getPrecioBase());
-        Random random = new Random();
-        reserva.setCodigoReserva(random.nextInt(1000000)); // Genera un valor aleatorio entero de hasta 6 dígitos
+        Reserva reserva = new Reserva(fecha, this.habitacionRepository.findByNumero(numHabitacion), this.clienteRepository.findByCedula(DinCliente), this.habitacionRepository.findByNumero(numHabitacion).getPrecioBase(), new Random().nextInt(1000000));
+        ReservaInfo reservaInfo = new ReservaInfo(reserva.getFechaReserva(), reserva.getTotalPagar(), reserva.getCodigoReserva(), reserva.getHabitacion().getNumero());
         reservaRepository.save(reserva);
-        reservaInfo.setFechaReserva(reserva.getFechaReserva());
-        reservaInfo.setTotalPagar(reserva.getTotalPagar());
-        reservaInfo.setCodigoReserva(reserva.getCodigoReserva());
-        reservaInfo.setNumeroHabitacion(reserva.getHabitacion().getNumero());
         return reservaInfo;
     }
+
+
 
     public List<Reserva> buscarReservaPorCliente(Integer cedula){
         Cliente cliente = this.clienteRepository.findByCedula(cedula);
@@ -54,12 +49,19 @@ public class ServiceReserva {
     }
 
     public  List<Habitacion> buscarHabitacionesDisponibles(LocalDate fecha, String tipoHabitacion){
-
-        Reserva reservaFecha = this.reservaRepository.findByFechaReserva(fecha);
-        List<Habitacion> habitacionesDisponibles = new ArrayList<>();
-        habitacionesDisponibles.add(reservaFecha.getHabitacion());
-        return  habitacionesDisponibles;
+        List<Reserva> reservaFecha = this.reservaRepository.findByFechaReserva(fecha);
+        List<Habitacion> habitacionesNoDisponibles = new ArrayList<>();
+        for(Reserva HabitacionesReservadas: reservaFecha){
+            habitacionesNoDisponibles.add(HabitacionesReservadas.getHabitacion());
+        }
+        List<Habitacion> todasLasHabitaciones = this.habitacionRepository.findAll();
+        List<Habitacion> habitacionesDisponibles = new ArrayList<>(todasLasHabitaciones);
+        habitacionesDisponibles.removeAll(habitacionesNoDisponibles);
+        List<Habitacion> habitacionDisponiblesParaReservar = habitacionesDisponibles.stream()
+                .filter(h -> h.getTipoHabitacion().equals(tipoHabitacion))
+                .collect(Collectors.toList());
+        return  habitacionDisponiblesParaReservar;
     }
 
-
 }
+

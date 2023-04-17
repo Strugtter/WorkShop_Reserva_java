@@ -11,11 +11,11 @@ public class Reserva {
     private LocalDate fechaReserva;
 
     @JoinColumn(name="numero")
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     private Habitacion habitacion;
 
     @JoinColumn(name="cedula")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Cliente cliente;
     @Id
     @Column
@@ -26,7 +26,7 @@ public class Reserva {
     public Reserva() {
     }
 
-    public Reserva(LocalDate fechaReserva, Habitacion habitacion, Cliente cliente, double totalPagar) {
+    public Reserva(LocalDate fechaReserva, Habitacion habitacion, Cliente cliente, double totalPagar, Integer codigoReserva) {
         this.fechaReserva = fechaReserva;
         this.habitacion = habitacion;
         this.cliente = cliente;

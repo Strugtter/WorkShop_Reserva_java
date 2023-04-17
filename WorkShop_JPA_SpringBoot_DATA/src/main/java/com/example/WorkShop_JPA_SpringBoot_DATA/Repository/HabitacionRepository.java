@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface HabitacionRepository extends CrudRepository <Habitacion, Integer> {
     Habitacion findByNumero(Integer numero);
+    List<Habitacion> findAll();
 }

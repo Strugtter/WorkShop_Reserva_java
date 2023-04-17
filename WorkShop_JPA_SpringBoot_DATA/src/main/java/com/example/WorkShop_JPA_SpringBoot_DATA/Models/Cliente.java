@@ -28,6 +28,11 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente")
     private List<Reserva> reservas;
 
+    public Cliente( String nombre, Integer cedula) {
+        this.cedula = cedula;
+        this.nombre = nombre;
+    }
+
     public Cliente(){
 
     }
